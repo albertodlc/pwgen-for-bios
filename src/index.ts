@@ -1,4 +1,3 @@
-import { monotonicTime } from "../polyfills/performancePolyfill";
 import { asusSolver } from "./asus";
 import { dellHddSolver, dellLatitude3540Solver, dellSolver, hddOldSolver } from "./dell";
 import { fsi20DecNewSolver, fsi20DecOldSolver, fsi24DecSolver, fsiHexSolver } from "./fsi";
@@ -48,9 +47,8 @@ export const solvers: Solver[] = [
 export function keygen(serial: string): KeygenResult[] {
     return solvers
         .map((solver): KeygenResult => {
-            let startTime = monotonicTime();
             let passwords = solver(serial);
-            let calcTime = monotonicTime() - startTime;
-            return [solver, passwords, calcTime];
+            // TODO: Add performance info as 3rd parameter
+            return [solver, passwords, 0];
         }).filter(([_, passwords]) => passwords !== undefined && passwords.length >= 1);
 }

@@ -1,4 +1,4 @@
-import { samsung44HexSolver, samsungSolver } from "./samsung";
+import { samsung44HexSolver, samsungSolver } from "../../src/keygen/samsung";
 
 describe("Test Samsung BIOS", () => {
     it("Samsung key for 07088120410C0000 is 12345", () => {

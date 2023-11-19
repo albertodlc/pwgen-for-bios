@@ -1,4 +1,26 @@
-const { getWebpackConfig } = require('./webpack.base');
+const path = require('path');
 
-
-module.exports = getWebpackConfig(process.env.PRODUCTION, process.env.GOOGLE_ANALYTICS_TAG);
+module.exports = {
+    entry: './src/index.ts',
+    mode:'development',
+    devtool: 'inline-source-map',
+    module: {
+        rules: [
+            {
+                test: /\.tsx?$/,
+                use: 'ts-loader',
+                exclude: /node_modules/,
+                include: [
+                    path.resolve(__dirname, "src")
+                ],
+            },
+        ],
+    },
+    resolve: {
+        extensions: [ '.tsx', '.ts', '.js' ],
+    },
+    output: {
+        filename: 'bundle.js',
+        path: path.resolve(__dirname, 'dist'),
+    },
+};

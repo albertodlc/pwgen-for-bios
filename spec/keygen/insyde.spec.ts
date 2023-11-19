@@ -1,4 +1,4 @@
-import { acerInsyde10Solver, hpInsydeSolver, insydeSolver } from "./insyde";
+import { acerInsyde10Solver, hpInsydeSolver, insydeSolver } from "../../src/keygen/insyde";
 
 describe("Insyde BIOS", () => {
     it("Insyde key for 03133610 is 12891236", () => {

@@ -1,6 +1,7 @@
-import { asusKeygen, asusSolver } from "./asus";
 
 // https://pastebin.com/L3c3rySj
+
+import { asusKeygen, asusSolver } from "../../src/keygen/asus.js";
 
 describe("Test Asus keygen", () => {
     it("Asus password for 2007-02-01 is AA19BALA", () => {

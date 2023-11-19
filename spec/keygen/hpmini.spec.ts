@@ -1,4 +1,4 @@
-import { hpMiniSolver } from "./hpmini";
+import { hpMiniSolver } from "../../src/keygen/hpmini";
 
 describe("Test HP Mini BIOS", () => {
     it("HPMini key for CNU1234ABC is e9l37fvcpe", () => {

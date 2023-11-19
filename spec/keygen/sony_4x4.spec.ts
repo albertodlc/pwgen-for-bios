@@ -1,5 +1,5 @@
 import JSBI from "jsbi";
-import { modularPow, sony4x4Keygen, sony4x4Solver } from "./sony_4x4";
+import { modularPow, sony4x4Keygen, sony4x4Solver } from "../../src/keygen/sony_4x4";
 
 describe("Sony 4x4 BIOS Keygen", () => {
     it("Sony 4x4 key for 73KR3FP9PVKHK29R is 32799624", () => {

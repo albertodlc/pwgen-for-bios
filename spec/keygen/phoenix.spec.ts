@@ -1,4 +1,4 @@
-import * as bios from "./phoenix";
+import * as bios from "../../src/keygen/phoenix";
 
 describe("Test Phoenix BIOS", () => {
     it("check correct passwords", () => {

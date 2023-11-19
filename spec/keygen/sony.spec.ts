@@ -1,4 +1,4 @@
-import { sonySolver } from "./sony";
+import { sonySolver } from "../../src/keygen/sony.js";
 
 describe("Sony BIOS", () => {
     it("Sony key for 1234567 is 9648669", () => {

@@ -1,4 +1,4 @@
-import { AES128, Crc64, Sha256 } from "./cryptoUtils";
+import { AES128, Crc64, Sha256 } from "../../src/keygen/cryptoUtils";
 
 describe("Crypto utils", () => {
     it("sha256", () => {

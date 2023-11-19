@@ -1,4 +1,4 @@
-import { fsi20DecNewSolver, fsi20DecOldSolver, fsi24DecSolver, fsiHexSolver } from "./fsi";
+import { fsi20DecNewSolver, fsi20DecOldSolver, fsi24DecSolver, fsiHexSolver } from "../../src/keygen/fsi";
 
 describe("Test Fujitsu-Siemens 5x4 hexadecimal BIOS", () => {
     it("FSI key for 1234-4321-1234-4321-1234 is 35682708", () => {
