@@ -1,4 +1,4 @@
-import { keygen, solvers } from "../../src/keygen";
+import { keygen, solvers } from "../src/";
 
 describe("BIOS keygen", () => {
     it("Sony key for 1234567 is 9648669", () => {

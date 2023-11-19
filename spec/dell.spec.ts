@@ -8,7 +8,7 @@
 import {
     calculateSuffix, dellHddSolver, dellLatitude3540Solver, dellSolver, DellTag, DES, hddOldSolver,
     keygenDell, latitude3540Keygen, SuffixType
-} from "../../src/keygen/dell";
+} from "../src/dell";
 
 // shortcut for simpler testing
 function checkSuffix(serial: string, tag: DellTag, type: SuffixType): number[] {

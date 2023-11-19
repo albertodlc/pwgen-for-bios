@@ -1,4 +1,4 @@
-import { Crc32, hpAMISolver } from "../../src/keygen/hpami";
+import { Crc32, hpAMISolver } from "../src/hpami";
 
 describe("HP AMI BIOS", () => {
     it("Check solver", () => {
