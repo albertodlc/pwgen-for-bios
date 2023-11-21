@@ -1,28 +1,28 @@
-import { samsung44HexSolver, samsungSolver } from "../src/samsung";
+import { samsung44HexSolver, samsungSolver } from "../samsung";
 
 describe("Test Samsung BIOS", () => {
-    it("Samsung key for 07088120410C0000 is 12345", () => {
+    test("Samsung key for 07088120410C0000 is 12345", () => {
         expect(samsungSolver("07088120410C0000")).toEqual(["12345"]);
     });
-    it("Samsung key for 07088120410C is 12345", () => {
+    test("Samsung key for 07088120410C is 12345", () => {
         expect(samsungSolver("07088120410C")).toEqual(["12345"]);
     });
 
-    it("Samsung key for 1AA9CD4638C0186000 is 5728000", () => {
+    test("Samsung key for 1AA9CD4638C0186000 is 5728000", () => {
         expect(samsungSolver("1AA9CD4638C0186000")).toEqual(["5728000"]);
     });
 
-    it("Samsung key for 1AA9CD4638C0186001 is 5728000@", () => {
+    test("Samsung key for 1AA9CD4638C0186001 is 5728000@", () => {
         expect(samsungSolver("1AA9CD4638C0186001")).toEqual(["5728000@"]);
     });
-    it("test invalid keys", () => {
+    test("test invalid keys", () => {
         expect(samsungSolver("1AA9CD4638C01860Z0")).toEqual([]);
         expect(samsungSolver("1AA9CD4638C01860000")).toEqual([]);
     });
 });
 
 describe("Test Samsung 44 hex digit", () => {
-    it("Samsung 44 keys", () => {
+    test("Samsung 44 keys", () => {
         expect(samsung44HexSolver("59F72F85239CC9DB6239DEDDC5C4CDB43A37D5533003")).toEqual(["justin"]);
         expect(samsung44HexSolver("351EF13822577610E4ED863695BD6CB7B356A5227185")).toEqual(["Diegocoelho"]);
         expect(samsung44HexSolver("D78EF5B5CA236F4869662339D9912C39B727D50BB285")).toEqual(["auroradvr23"]);
@@ -44,7 +44,7 @@ describe("Test Samsung 44 hex digit", () => {
         // lowercase
         expect(samsung44HexSolver("2d2fb35c18b2b4846f1f989846036e6ca968e4c87005")).toEqual(["2945670211"]);
     });
-    it("Samsung 44 invalid keys", () => {
+    test("Samsung 44 invalid keys", () => {
         expect(samsung44HexSolver("2D2FB35C18B2B4846F1F989846036E6DA968E4C87005")).toEqual([]);
         expect(samsung44HexSolver("B6C5525D15BCA963277178ED150EA3A968994698B38")).toEqual([]);
         expect(samsung44HexSolver("B6C5525D15BCA963277178ED150EA3A968994698B3833")).toEqual([]);

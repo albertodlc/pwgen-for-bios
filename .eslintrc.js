@@ -12,9 +12,9 @@ module.exports = {
         "sourceType": "module"
     },
     "plugins": [
-        "eslint-plugin-no-null",
-        "eslint-plugin-jsdoc",
-        "eslint-plugin-prefer-arrow",
+        "no-null",
+        "jsdoc",
+        "prefer-arrow",
         "@typescript-eslint",
     ],
     "rules": {
@@ -129,7 +129,6 @@ module.exports = {
         ],
         "jsdoc/check-alignment": "error",
         "jsdoc/check-indentation": "error",
-        "jsdoc/newline-after-description": "error",
         "max-classes-per-file": "off",
         "new-parens": "error",
         "no-bitwise": "error",

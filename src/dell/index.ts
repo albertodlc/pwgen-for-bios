@@ -190,6 +190,7 @@ export function keygenDell(serial: string, tag: DellTag, type: SuffixType): stri
         // Maybe protect against unicode symbols with: charCode & 0xFF ?
         fullSerialArray.push(fullSerial.charCodeAt(i));
     }
+
     if (tag === DellTag.TagE7A8) {
         // TODO: refactor all this
         encBlock = byteArrayToInt(fullSerialArray);
@@ -198,8 +199,10 @@ export function keygenDell(serial: string, tag: DellTag, type: SuffixType): stri
                 encBlock[i] = 0;
             }
         }
+
         const out_str1 = calculateE7A8(encBlock, TagE7A8Encoder);
         const out_str2 = calculateE7A8(encBlock, TagE7A8EncoderSecond);
+
         let output = [];
         if (out_str1) {
             output.push(out_str1);
@@ -207,6 +210,7 @@ export function keygenDell(serial: string, tag: DellTag, type: SuffixType): stri
         if (out_str2) {
             output.push(out_str2);
         }
+
         return output;
     }
 
@@ -230,7 +234,7 @@ export function keygenDell(serial: string, tag: DellTag, type: SuffixType): stri
 function checkDellTag(tag: string): boolean {
     tag = tag.toUpperCase();
     for (let tagItem in DellTag) {
-        if (tag === (DellTag[tagItem as keyof typeof DellTag])) {
+        if (tag === (DellTag[tagItem as keyof typeof DellTag] as string) ) {
             return true;
         }
     }

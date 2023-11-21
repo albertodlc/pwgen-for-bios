@@ -1,7 +1,7 @@
-import { AES128, Crc64, Sha256 } from "../src/cryptoUtils";
+import { AES128, Crc64, Sha256 } from "../cryptoUtils";
 
 describe("Crypto utils", () => {
-    it("sha256", () => {
+    test("sha256", () => {
         expect(new Sha256(Uint8Array.from([])).hexdigest())
             .toEqual("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
 
@@ -20,7 +20,7 @@ describe("Crypto utils", () => {
         expect(new Sha256(Uint8Array.from("0".repeat(56).split("").map((v) => v.charCodeAt(0)))).hexdigest())
             .toEqual("bd03ac1428f0ea86f4b83a731ffc7967bb82866d8545322f888d2f6e857ffc18");
     });
-    it("AES128", () => {
+    test("AES128", () => {
         const numbers = Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
         const myaes = new AES128(numbers);
         expect(myaes.encryptBlock(numbers))
@@ -29,7 +29,7 @@ describe("Crypto utils", () => {
         expect(myaes.encryptBlock(Uint8Array.from("123456789abcdefg".split("").map((v) => v.charCodeAt(0)))))
             .toEqual(Uint8Array.from([111, 52, 225, 193, 98, 40, 19, 168, 122, 34, 93, 3, 146, 166, 202, 100]));
     });
-    it("crc64", () => {
+    test("crc64", () => {
         let mycrc = new Crc64(Crc64.ECMA_POLYNOMIAL);
         mycrc.update([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
         expect(mycrc.hexdigest()).toEqual("335a089168033fbe");

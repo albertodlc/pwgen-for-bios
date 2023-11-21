@@ -1,7 +1,7 @@
-import { Crc32, hpAMISolver } from "../src/hpami";
+import { Crc32, hpAMISolver } from "../hpami";
 
 describe("HP AMI BIOS", () => {
-    it("Check solver", () => {
+    test("Check solver", () => {
         expect(hpAMISolver("A7AF422F")).toEqual(["49163252"]);
         expect(hpAMISolver("12345678")).toEqual(["2ae211b4"]);
         expect(hpAMISolver("48A02676")).toEqual(["27545092"]);
@@ -9,7 +9,7 @@ describe("HP AMI BIOS", () => {
         expect(hpAMISolver("757EDC82")).toEqual(["edfe2edd"]);
         expect(hpAMISolver("7d94422f")).toEqual(["e4eea2c4"]);
     });
-    it("Check crc32", () => {
+    test("Check crc32", () => {
         let crc = new Crc32();
         crc.update("test".split("").map((v) => v.charCodeAt(0)));
         expect(crc.digest()).toEqual(3632233996);

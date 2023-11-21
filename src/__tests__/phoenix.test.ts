@@ -1,7 +1,7 @@
-import * as bios from "../src/phoenix";
+import * as bios from "../phoenix";
 
 describe("Test Phoenix BIOS", () => {
-    it("check correct passwords", () => {
+    test("check correct passwords", () => {
         expect(bios.phoenixSolver.calculateHash("abstoou")).toEqual(12345);
         expect(bios.phoenixHPCompaqSolver.calculateHash("vnflm")).toEqual(12345);
         expect(bios.phoenixFsiSolver.calculateHash("411113")).toEqual(12345);
@@ -11,7 +11,7 @@ describe("Test Phoenix BIOS", () => {
         expect(bios.phoenixFsiXSolver.calculateHash("739979")).toEqual(12345);
     });
 
-    it("find password for hash 12345", () => {
+    test("find password for hash 12345", () => {
         function phoenixValidate(solver: bios.PhoenixSolver, hash: string): number {
             let newPassword = solver(hash)[0];
             expect(newPassword).not.toBeUndefined();

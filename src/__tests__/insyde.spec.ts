@@ -1,30 +1,30 @@
-import { acerInsyde10Solver, hpInsydeSolver, insydeSolver } from "../src/insyde";
+import { acerInsyde10Solver, hpInsydeSolver, insydeSolver } from "../insyde";
 
 describe("Insyde BIOS", () => {
-    it("Insyde key for 03133610 is 12891236", () => {
+    test("Insyde key for 03133610 is 12891236", () => {
         expect(insydeSolver("03133610")[0]).toEqual("12891236");
     });
-    it("Insyde key for 12345678 is 03023278", () => {
+    test("Insyde key for 12345678 is 03023278", () => {
         expect(insydeSolver("12345678")[0]).toEqual("03023278");
     });
 
-    it("Insyde key for 87654321 is 38732907", () => {
+    test("Insyde key for 87654321 is 38732907", () => {
         expect(insydeSolver("87654321")[0]).toEqual("38732907");
     });
 
-    it("Insyde key for 12345678 (all variants)", () => {
+    test("Insyde key for 12345678 (all variants)", () => {
         expect(insydeSolver("12345678")).toEqual(["03023278", "16503512"]);
         expect(insydeSolver("03133610")).toEqual(["12891236", "24094120", "99534862"]);
     });
 
-    it("test invalid keys", () => {
+    test("test invalid keys", () => {
         expect(insydeSolver("123456789")).toEqual([]);
         expect(insydeSolver("1234567")).toEqual([]);
     });
 });
 
 describe("Acer Insyde 10 BIOS", () => {
-    it("Check Acer solver", () => {
+    test("Check Acer solver", () => {
         expect(acerInsyde10Solver("0173549286")).toEqual(["e0eac38fdfcfd74a"]);
         expect(acerInsyde10Solver("1014206418")).toEqual(["3c0a50907bc2c604"]);
         expect(acerInsyde10Solver("1765418418")).toEqual(["5f54e355b83e969c"]);
@@ -47,7 +47,7 @@ describe("Acer Insyde 10 BIOS", () => {
 });
 
 describe("HP Insyde [i \d{8}] codes", () => {
-    it("Check HP Insyde solver", () => {
+    test("Check HP Insyde solver", () => {
         expect(hpInsydeSolver("i 70412809")[0]).toEqual("47283646");
         expect(hpInsydeSolver("i 76205377")[0]).toEqual("41898738");
         expect(hpInsydeSolver("i 52669168")[0]).toEqual("65436527");

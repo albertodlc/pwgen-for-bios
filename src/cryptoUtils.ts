@@ -1,6 +1,7 @@
 /* eslint-disable no-bitwise */
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-shadow */
+
 import JSBI from "jsbi";
 
 export class Crc64 {
