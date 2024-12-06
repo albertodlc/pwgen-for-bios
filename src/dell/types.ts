@@ -9,7 +9,8 @@ export enum DellTag {
     Tag1F66 = "1F66",
     Tag1F5A = "1F5A",
     TagBF97 = "BF97",
-    TagE7A8 = "E7A8"
+    TagE7A8 = "E7A8",
+    Tag8FC8 = "8FC8"
 }
 
 export const enum SuffixType {

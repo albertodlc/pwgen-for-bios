@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "browserslist": "> 0.25%, not dead",
   "dependencies": {
-    "jsbi": "^4.3.0"
+    "jsbi": "^4.3.0"  
   },
   "devDependencies": {
     "@types/jest": "^29.5.8",

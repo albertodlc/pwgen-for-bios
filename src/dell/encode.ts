@@ -1,6 +1,7 @@
 /* eslint-disable no-bitwise  */
 import { DellTag } from "./types";
 
+// 64 elements
 const md5magic = Uint32Array.from([
     0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
     0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
@@ -46,6 +47,7 @@ const rotationTable = [
     [6, 10, 15, 21]
 ];
 
+// INITIAL MD5 DATA (Always the same ?)
 const initialData = [
     0x67452301 | 0,
     0xEFCDAB89 | 0,
@@ -91,14 +93,35 @@ function encF1N(num1: number, num2: number): number {
     return (num1 - num2) | 0;
 }
 
+/**
+ * ((-num3 ^ num2) & num1) ^ -num3
+ * @param num1 
+ * @param num2 
+ * @param num3 
+ * @returns 
+ */
 function encF2N(num1: number, num2: number, num3: number): number {
     return encF2(num1, num2, ~num3);
 }
 
+/**
+ * (-num2 ^ num1) ^ num3
+ * @param num1 
+ * @param num2 
+ * @param num3 
+ * @returns 
+ */
 function encF4N(num1: number, num2: number, num3: number): number {
     return encF4(num1, ~num2, num3);
 }
 
+/**
+ * (-num1 | ~num3) ^ num2
+ * @param num1 
+ * @param num2 
+ * @param num3 
+ * @returns 
+ */
 function encF5N(num1: number, num2: number, num3: number): number {
     return encF5(~num1, num2, num3);
 }
@@ -162,13 +185,22 @@ class Tag595BEncoder {
         return this.encData.map((v) => (v | 0) >>> 0);
     }
 
+    /**
+     * Initial MD5 HASH State
+     * @returns 
+     */
     protected initialData(): number[] {
+        console.log(`Initial MD5 Algorithm data: ${JSON.stringify(initialData)}`);
+
         return initialData.slice();
     }
 
-    protected calculate(func: EncFunction, key1: number, key2: number): number {
+    protected calculate(func: EncFunction, encBlockKey: number, md5Key: number): number {
         let temp = func(this.B, this.C, this.D);
-        return this.A + this.f1(temp, this.md5table[key2] + this.encBlock[key1]) | 0;
+        // this.encBlock = Serial + Tag | full Serial
+        let b = this.md5table[md5Key] + this.encBlock[encBlockKey];
+
+        return this.A + this.f1(temp, b) | 0;
     }
 
     protected incrementData() {
@@ -346,7 +378,6 @@ class Tag6FF1Encoder extends Tag595BEncoder {
         }
     }
 }
-
 class Tag1F5AEncoder extends Tag595BEncoder {
     protected readonly md5table = md5magic2;
 
@@ -419,11 +450,21 @@ export class TagE7A8Encoder extends Tag595BEncoder {
             this.D ^= this.encodeParams[3] + p;
 
             for (let j = 0; j < this.loopParams[2]; j += 4) {
-                this.shortcut(this.f2, j, j + 32, 0, [0, 1, 2, 3]);
+                let fun = this.f2;
+                let md5_index = j + 32;
+                let rot_index = 0;
+                let indexes = [0, 1, 2, 3];
+
+                this.shortcut(fun, j, md5_index, rot_index, indexes);
             }
 
             for (let j = 0; j < this.loopParams[2]; j += 4) {
-                this.shortcut(this.f3, j, j, 1, [1, -2, -1, 0]);
+                let fun = this.f3;
+                let md5_index = j;
+                let rot_index = 1;
+                let indexes = [1, -2, -1, 0];
+
+                this.shortcut(fun, j, md5_index, rot_index, indexes);
             }
 
             for (let j = this.loopParams[3]; j > 3; j -= 4) {
@@ -454,7 +495,148 @@ export class TagE7A8Encoder extends Tag595BEncoder {
             for (let j = this.loopParams[3]; j > 0 ; j -= 4) {
 
                 this.shortcut(this.f2, j, j, 0, [0, 1, 2, 3]);
+            }
 
+            for (let j = 0; j < this.loopParams[2]; j += 4) {
+                this.shortcut(this.f3, j, j + 48, 1, [1, -2, 3, 0]);
+            }
+
+            this.incrementData();
+        }
+    }
+
+    /**
+     * Initial MD5 HASH State
+     * @override
+     * @returns 
+     */
+    protected initialData(): number[] {
+        const customInitialData = [0, 0, 0, 0];
+
+        console.log(`Initial MD5 Algorithm data: ${JSON.stringify(customInitialData)}`);
+
+        return customInitialData;    
+    }
+
+    private shortcut(fun: EncFunction, j: number,  md5_index: number, rot_index: number, indexes: number[]): void {
+
+        for (let i = 0; i < 4; i++) {
+            let encBlockKey = (j + indexes[i]) & 7;
+            let md5Key = i + md5_index;
+
+            const t = this.calculate(fun, encBlockKey, md5Key);
+
+            this.A = this.D;
+            this.D = this.C;
+            this.C = this.B;
+            this.B = rol(t, rotationTable[rot_index][i]) + this.B | 0;
+        }
+    }
+}
+
+export class TagE7A8EncoderSecond extends TagE7A8Encoder {
+
+    protected readonly loopParams = [17, 13, 12, 16];
+
+    /** 
+     * @override md5table
+     * ! This model has bug and it goes over the array limit
+     */
+    protected readonly md5table = (() => {
+        const overfillArr = [
+            0xa0008 ^ 0x6d2f93a5, 
+            0xa08097 ^ 0x6d2f93a5, 
+            0xa010908 ^ 0x6d2f93a5, 
+            0x60606161 ^ 0x6d2f93a5
+        ];
+
+        let arr = new Uint32Array(md5magic2.length + overfillArr.length);
+        arr.set(md5magic2);
+        arr.set(overfillArr, md5magic2.length);
+
+        return arr;
+    })();
+
+}
+
+export class Tag8FC8Encoder extends Tag595BEncoder {
+    /** 
+     * @override md5table
+     * ! This model has bug and it goes over the array limit
+     */
+    protected readonly md5table = (() => {
+        const overfillArr = [
+            0xa0008 ^ 0x6d2f93a5, 
+            0xa08097 ^ 0x6d2f93a5, 
+            0xa010908 ^ 0x6d2f93a5, 
+            0x60606161 ^ 0x6d2f93a5
+        ];
+
+        let arr = new Uint32Array(md5magic2.length + overfillArr.length);
+        arr.set(md5magic2);
+        arr.set(overfillArr, md5magic2.length);
+
+        return arr;
+    })();
+
+    // TODO: 
+    public loopParams = [17, 13, 12, 8];
+
+    // TODO:
+    protected readonly encodeParams = Uint32Array.from([
+        0x50501010, 0xA010908, 0xA08097, 0x60606161,
+        0x60606161, 0xA0008, 0x100097, 0x50501010
+    ]);
+
+    public makeEncode(): void {
+
+        for (let p = 0; p < this.loopParams[0]; p++) {
+            this.A |= this.encodeParams[0];
+            this.B ^= this.encodeParams[1];
+            this.C |= this.encodeParams[2] - p;
+            this.D ^= this.encodeParams[3] + p;
+
+            for (let j = 0; j < this.loopParams[2]; j += 4) {
+                let fun = this.f2;
+                let md5_index = j + 32;
+                let rot_index = 0;
+                let indexes = [0, 1, 2, 3];
+
+                this.shortcut(fun, j, md5_index, rot_index, indexes);
+            }
+
+            for (let j = 0; j < this.loopParams[2]; j += 4) {
+                this.shortcut(this.f3, j, j, 1, [1, -2, -1, 0]);
+            }
+
+            for (let j = this.loopParams[3]; j > 3; j -= 4) {
+                this.shortcut(this.f4, j, j + 16, 2, [-3, -4, -1, 0]);
+            }
+
+            for (let j = this.loopParams[3]; j > 3 ; j -= 4) {
+                this.shortcut(this.f5, j, j + 48, 3, [2, 3, 2, -3]);
+            }
+
+            this.incrementData();
+        }
+
+        for (let p = 0; p < this.loopParams[1]; p++) {
+            this.A |= this.encodeParams[4];
+            this.B ^= this.encodeParams[5];
+            this.C |= this.encodeParams[6] - p;
+            this.D ^= this.encodeParams[7] + p;
+
+            for (let j = this.loopParams[3]; j > 3 ; j -= 4) {
+                this.shortcut(this.f4, j, j + 16, 2, [-3, -4, -1, 2]);
+            }
+
+            for (let j = 0; j < this.loopParams[2]; j += 4) {
+                this.shortcut(this.f5, j, j + 32, 3, [2, 3, 2, 5]);
+            }
+
+            for (let j = this.loopParams[3]; j > 0 ; j -= 4) {
+
+                this.shortcut(this.f2, j, j, 0, [0, 1, 2, 3]);
             }
 
             for (let j = 0; j < this.loopParams[2]; j += 4) {
@@ -466,35 +648,25 @@ export class TagE7A8Encoder extends Tag595BEncoder {
     }
 
     protected initialData(): number[] {
-        return [0, 0, 0, 0];
+        const customInitialData = [0, 0, 0, 0];
+
+        return customInitialData;
     }
 
-    private shortcut(fun: EncFunction, j: number,  md5_index: number, rot_index: number, indexes: number[]): void {
+    private shortcut(fun: EncFunction, j: number, md5_index: number, rot_index: number, indexes: number[]): void {
 
         for (let i = 0; i < 4; i++) {
-            const t = this.calculate(fun, (j + indexes[i]) & 7, i + md5_index);
+            let encBlockKey = (j + indexes[i]) & 7;
+            let md5Key = i + md5_index;
+
+            const t = this.calculate(fun, encBlockKey, md5Key);
+
             this.A = this.D;
             this.D = this.C;
             this.C = this.B;
             this.B = rol(t, rotationTable[rot_index][i]) + this.B | 0;
         }
     }
-}
-
-export class TagE7A8EncoderSecond extends TagE7A8Encoder {
-
-    // this model has bug and it goes over the array limit
-    protected readonly md5table = (() => {
-        const overfillArr = [
-            0xa0008 ^ 0x6d2f93a5, 0xa08097 ^ 0x6d2f93a5, 0xa010908 ^ 0x6d2f93a5, 0x60606161 ^ 0x6d2f93a5
-        ];
-        let arr = new Uint32Array(md5magic2.length + overfillArr.length);
-        arr.set(md5magic2);
-        arr.set(overfillArr, md5magic2.length);
-        return arr;
-    })();
-
-    protected readonly loopParams = [17, 13, 12, 16];
 }
 
 const encoders: {readonly [P in DellTag]: Encoder} = {
@@ -507,7 +679,8 @@ const encoders: {readonly [P in DellTag]: Encoder} = {
     "6FF1": Tag6FF1Encoder,
     "1F5A": Tag1F5AEncoder,
     "BF97": TagBF97Encoder,
-    "E7A8": TagE7A8Encoder
+    "E7A8": TagE7A8Encoder,
+    "8FC8": TagE7A8Encoder
 };
 
 export function blockEncode(encBlock: number[], tag: DellTag): number[] {

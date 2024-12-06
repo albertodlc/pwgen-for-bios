@@ -1,6 +1,6 @@
 /* eslint-disable no-bitwise */
 import { makeSolver } from "../utils";
-import { blockEncode, TagE7A8Encoder, TagE7A8EncoderSecond } from "./encode";
+import { blockEncode, Tag8FC8Encoder, TagE7A8Encoder, TagE7A8EncoderSecond } from "./encode";
 import { DES, latitude3540Keygen } from "./latitude";
 import { DellTag, SuffixType } from "./types";
 export { DellTag, SuffixType, DES, latitude3540Keygen };
@@ -20,10 +20,18 @@ const asciiPrintable = "012345679abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJK
 const extraCharacters: {readonly [P in DellTag]?: string} = {
     "2A7B": asciiPrintable,
     "1F5A": asciiPrintable,
+    // 0x1d3b
     "1D3B": "0BfIUG1kuPvc8A9Nl5DLZYSno7Ka6HMgqsJWm65yCQR94b21OTp7VFX2z0jihE33d4xtrew0",
+    // 0x1f66
     "1F66": "0ewr3d4xtUG1ku0BfIp7VFb21OTSno7KDLZYqsJWa6HMgCQR94m65y9Nl5Pvc8AjihE3X2z0",
+    // 0x6ff1
     "6FF1": "08rptBxfbGVMz38IiSoeb360MKcLf4QtBCbWVzmH5wmZUcRR5DZG2xNCEv1nFtzsZB2bw1X0",
-    "BF97": "0Q2drGk99rkQFMxN[Z5y3DGr16h638myIL2rzz2pzcU7JWLJ1EGnqRN4seZPRM2aBXIjbkGZ"
+    // 0xbf97
+    "BF97": "0Q2drGk99rkQFMxN[Z5y3DGr16h638myIL2rzz2pzcU7JWLJ1EGnqRN4seZPRM2aBXIjbkGZ",
+    // BIOS Specific version bug => "BF97": "0Q2drGk99rkQFMxN[Z5y3DGr16h638myIL2rzz2pzcU7JWLJ1EGnqRN4seZPRM2aBXIjbkGZ2A7B"
+    // TODO: Is this one correct ?
+    "E7A8": "Q92G0drk9y63r5DG1hLqJGW1EnRk[QxrFMNZ328I6myLr4MsPNeZR2z72czpzUJBGXbaIjkZ",
+    "8FC8": "0Q2drGk99WLJ1EGnqR5y3DGr16hN4seZPRM2zz2pzcU7JaBXIjbkGZrkQFMxN[Z638myIL2r"
 };
 
 /*
@@ -127,7 +135,7 @@ function resultToString(arr: number[] | Uint8Array, tag: DellTag): string {
     return result;
 }
 /*
- * 7 symbols + 4 symbols ( 595B, D35B, 2A7B, A95B, 1D3B etc...)
+ * SERIAL (7 symbols) + SERVICE_TAG (4 symbols - 595B, D35B, 2A7B, A95B, 1D3B etc...)
  * serial -- serial number without tag, 7 symbols for ServiceTag, 11 symbols for HDD
  * tag    -- tag string
  */
@@ -135,20 +143,47 @@ export function keygenDell(serial: string, tag: DellTag, type: SuffixType): stri
     let fullSerial: string;
     let encBlock: number[];
 
-    function byteArrayToInt(arr: number[]): number[] {
-        // convert byte array to 32-bit little-endian int array
-        // also will convert undefined values to 0
-        let resultLength = arr.length >> 2; // divide length to 4
+    // ! GENERAL
+    /**
+     * ! CHAR CODE AT
+     * ! Convert string to byte array
+     * @param fullSerial 
+     * @returns 
+     */
+    function stringToByteArray(fullSerial: string): number[]{
+        let fullSerialArray: number[] = [];
+
+        for (let i = 0; i < fullSerial.length; i++) {
+            // Maybe protect against unicode symbols with: charCode & 0xFF ?
+            fullSerialArray.push(fullSerial.charCodeAt(i));
+        }
+
+        return fullSerialArray;
+    }
+
+    /**
+     * Convert byte array to 32-bit little-endian int array
+     * also will convert undefined values to 0
+     * @param fullSerialArr Serial + Tag | Suffix
+     * @returns 32-bit little-endian array []
+     */
+    function byteArrayToInt(fullSerialArr: number[]): number[] {
+        let resultLength = fullSerialArr.length >> 2; // divide length to 4
+
         let result: number[] = [];
         for (let i = 0; i <= resultLength; i++) {
-            result[i] = arr[i * 4] | (arr[i * 4 + 1] << 8) |
-                        (arr[i * 4 + 2] << 16) | (arr[i * 4 + 3] << 24) | 0;
+            result[i] = fullSerialArr[i * 4] | (fullSerialArr[i * 4 + 1] << 8) |
+                        (fullSerialArr[i * 4 + 2] << 16) | (fullSerialArr[i * 4 + 3] << 24) | 0;
         }
         return result;
     }
 
+    /**
+     * Convert 32-bit little-endian array to byte array
+     * @param arr 
+     * @returns 
+     */
     function intArrayToByte(arr: number[]): number[] {
-        // convert 32-bit little-endian array to byte array
         let result: number[] = [];
         arr.forEach((num) => {
             result.push(num & 0xFF);
@@ -159,41 +194,103 @@ export function keygenDell(serial: string, tag: DellTag, type: SuffixType): stri
         return result;
     }
 
+    // ! ENCODERS Specific
     function calculateE7A8(block: number[], klass: {encode(data: number[]): number[]}): string {
-        // TODO: refactor this
-        const table = "Q92G0drk9y63r5DG1hLqJGW1EnRk[QxrFMNZ328I6myLr4MsPNeZR2z72czpzUJBGXbaIjkZ";
+        // TODO: Reverse-engineer
+        function calculateSuffixE7A8(digestOut: Uint8Array ): string{
+            const table = extraCharacters[DellTag.TagE7A8] ?? [];
+
+            let out_str = "";
+            for (let i = 0; i < 16; i++) {
+                out_str += table[(digestOut[i + 16] + digestOut[i]) % table.length];
+            }
+
+            return out_str;
+        }
+
         const res = intArrayToByte(klass.encode(block));
         const digest = new Sha256(Uint8Array.from(res));
         const out = digest.digest();
-        let out_str = "";
-        for (let i = 0; i < 16; i++) {
-            out_str += table[(out[i + 16] + out[i]) % table.length];
-        }
+
+        let out_str = calculateSuffixE7A8(out);
+
         return out_str;
     }
 
-    if (tag === DellTag.TagA95B) {
+    function calculate8FC8(block: number[], klass: {encode(data: number[]): number[]}): string {
+        function calculateSuffix8FC8(digestPrevOut: Uint8Array ): string{
+            const table = extraCharacters[DellTag.Tag8FC8] ?? [];
+            let suffixSize: number = 16;
 
+            // ! Reserved 40 bytes
+            let FINAL_CODE_RESULT = "";
+
+            for (let index = 0; index < suffixSize; index++) {
+                let tableChar = (digestPrevOut[index + 16] + digestPrevOut[index]);
+                let tableSelectedChar = table[tableChar % table.length ];
+                FINAL_CODE_RESULT += tableSelectedChar;
+
+                // out_str += table[(out[i + 16] + out[i]) % table.length];
+            }
+
+            return FINAL_CODE_RESULT;
+        }
+
+        const res = intArrayToByte(klass.encode(block));
+        const digest = new Sha256(Uint8Array.from(res));
+        const out = digest.digest();
+        let out_str = calculateSuffix8FC8(out);
+
+        return out_str;
+    }
+
+    // TODO: Serial is SANITIZED to avoid strange chars (unicode symbols)
+
+
+    // ! CONCAT IF NECCESARY SERIAL + TAG
+    if (tag === DellTag.TagA95B) {
         if (type === SuffixType.ServiceTag) {
             fullSerial = serial + DellTag.Tag595B;
-        } else { // HDD
+        } else { 
+            // HDD
             fullSerial = serial.slice(3) + "\0\0\0" + DellTag.Tag595B;
         }
 
-    } else {
+    } 
+    else if (tag == DellTag.Tag8FC8){
+        fullSerial = serial + tag;
+    }
+    else {
         fullSerial = serial + tag;
     }
 
-    let fullSerialArray: number[] = [];
-    // convert string to byte array
-    for (let i = 0; i < fullSerial.length; i++) {
-        // Maybe protect against unicode symbols with: charCode & 0xFF ?
-        fullSerialArray.push(fullSerial.charCodeAt(i));
+    // ! CHAR CODE AT
+    let fullSerialArray = stringToByteArray(fullSerial);
+
+    if (tag === DellTag.Tag8FC8) {
+        // TODO: refactor all this
+        encBlock = byteArrayToInt(fullSerialArray);
+
+        for (let i = 0; i < 16; i++) {
+            if (encBlock[i] === undefined) {
+                encBlock[i] = 0;
+            }
+        }
+
+        const out_str2 = calculate8FC8(encBlock, Tag8FC8Encoder);
+
+        let output = [];
+        if (out_str2) {
+            output.push(out_str2);
+        }
+
+        return output;
     }
 
     if (tag === DellTag.TagE7A8) {
         // TODO: refactor all this
         encBlock = byteArrayToInt(fullSerialArray);
+
         for (let i = 0; i < 16; i++) {
             if (encBlock[i] === undefined) {
                 encBlock[i] = 0;

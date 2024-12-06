@@ -128,8 +128,8 @@ export class Crc64 {
     }
 
     public update(input: Uint8Array | number[]) {
-        for (let i = 0; i < input.length; i++) {
-            const b = input[i] & 0xFF;
+        for (const element of input) {
+            const b = element & 0xFF;
             const index = JSBI.toNumber(JSBI.asUintN(8, JSBI.bitwiseXor(this.crc, JSBI.BigInt(b))));
             const temp = JSBI.bitwiseXor(this.table[index], JSBI.signedRightShift(this.crc, JSBI.BigInt(8)));
             this.crc = JSBI.asUintN(64, temp);
@@ -187,8 +187,8 @@ export class Sha256 {
     }
 
     public update(input: Uint8Array) {
-        for (let i = 0; i < input.length; i++) {
-            const b = input[i];
+        for (const element of input) {
+            const b = element;
             this.data[this.datalen] = b;
             this.datalen++;
 
